@@ -1,237 +1,118 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>學生成績管理系統</title>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <style>
-    :root{
-      --green:#175C4C; --green2:#23806A; --gold:#C59A45; --cream:#F7F4EC;
-      --ink:#20312C; --muted:#6E7C77; --line:#DCE5E1; --white:#fff;
-      --danger:#B64A4A;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background:var(--cream);color:var(--ink)}
-    header{background:linear-gradient(135deg,var(--green),#0E4438);color:white;padding:26px 20px}
-    header .wrap{max-width:1180px;margin:auto}
-    h1{margin:0;font-size:28px}
-    header p{margin:8px 0 0;opacity:.86}
-    main{max-width:1180px;margin:24px auto;padding:0 16px 40px}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
-    .stat,.card{background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 5px 18px rgba(23,92,76,.06)}
-    .stat{padding:18px}.stat b{display:block;font-size:26px;margin-top:8px;color:var(--green)}
-    .card{padding:20px;margin-bottom:18px}
-    .card h2{font-size:19px;margin:0 0 16px}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
-    input,select{width:100%;padding:11px 12px;border:1px solid #CCD9D4;border-radius:10px;background:white;font-size:14px}
-    input:focus,select:focus{outline:2px solid rgba(35,128,106,.18);border-color:var(--green2)}
-    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
-    button,.file-label{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700;font-size:14px}
-    .primary{background:var(--green);color:#fff}.secondary{background:#E7F1EE;color:var(--green)}
-    .gold{background:#F4E8CD;color:#785A1F}.danger{background:#F7E3E3;color:var(--danger)}
-    .file-label{display:inline-block}.file-label input{display:none}
-    .toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
-    .toolbar input{max-width:360px}
-    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
-    table{width:100%;border-collapse:collapse;min-width:1000px;background:white}
-    th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;white-space:nowrap}
-    th{background:#F4F8F6;color:#49615A;position:sticky;top:0}
-    .pill{padding:4px 8px;border-radius:999px;font-weight:700;font-size:12px}
-    .pass{background:#DCF1E8;color:#17604F}.fail{background:#F8DEDE;color:#9E3D3D}
-    .mini{padding:6px 9px;font-size:12px}
-    .note{font-size:12px;color:var(--muted);line-height:1.7;margin-top:10px}
-    footer{text-align:center;color:var(--muted);font-size:12px;padding:8px}
-    @media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:520px){.stats,.grid{grid-template-columns:1fr}.toolbar{align-items:stretch;flex-direction:column}}
-  </style>
-</head>
-<body>
-<header>
-  <div class="wrap">
-    <h1>學生成績管理系統</h1>
-    <p>登記、搜尋、修改、統計與 Excel 匯出</p>
-  </div>
-</header>
+j現在停留在這個畫面
+這樣嗎
+這裡
+這裡
 
-<main>
-  <section class="stats">
-    <div class="stat">總筆數<b id="totalCount">0</b></div>
-    <div class="stat">及格人數<b id="passCount">0</b></div>
-    <div class="stat">未及格人數<b id="failCount">0</b></div>
-    <div class="stat">平均總分<b id="avgScore">0</b></div>
-  </section>
+好，這次我們用最簡單的方法，而且一次只做一步 😊
 
-  <section class="card">
-    <h2 id="formTitle">新增成績</h2>
-    <div class="grid">
-      <div><label>姓名 *</label><input id="name" placeholder="例如：王小明"></div>
-      <div><label>院所 / 班級</label><input id="unit" placeholder="例如：信義院"></div>
-      <div><label>課程 / 考試名稱</label><input id="course" placeholder="例如：MGA 認證"></div>
-      <div><label>考試日期</label><input id="examDate" type="date"></div>
-      <div><label>筆試成績</label><input id="written" type="number" min="0" max="100" placeholder="0-100"></div>
-      <div><label>實作成績</label><input id="practical" type="number" min="0" max="100" placeholder="0-100"></div>
-      <div><label>口試成績</label><input id="oral" type="number" min="0" max="100" placeholder="0-100"></div>
-      <div><label>及格標準</label><input id="passingScore" type="number" min="0" max="100" value="60"></div>
-      <div style="grid-column:span 2"><label>備註</label><input id="note" placeholder="例如：需補考實作"></div>
-    </div>
-    <div class="actions">
-      <button class="primary" onclick="saveRecord()">儲存成績</button>
-      <button class="secondary" onclick="resetForm()">清除表單</button>
-    </div>
-    <div class="note">總分會依有填寫的成績欄位自動取平均。若只填一項，就以該項為總分。</div>
-  </section>
+第一步：先把最新版改名
 
-  <section class="card">
-    <div class="toolbar">
-      <h2 style="margin:0">成績清單</h2>
-      <input id="search" placeholder="搜尋姓名、院所、課程…" oninput="renderTable()">
-    </div>
-    <div class="actions" style="margin:0 0 12px">
-      <button class="gold" onclick="exportExcel()">匯出 Excel</button>
-      <button class="secondary" onclick="exportBackup()">備份資料 JSON</button>
-      <label class="file-label secondary">還原備份<input type="file" accept=".json" onchange="importBackup(event)"></label>
-      <button class="danger" onclick="clearAll()">清空全部資料</button>
-    </div>
+你剛剛下載的最新版是：
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>姓名</th><th>院所 / 班級</th><th>課程</th><th>日期</th>
-            <th>筆試</th><th>實作</th><th>口試</th><th>總分</th><th>結果</th><th>備註</th><th>操作</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </section>
-</main>
-<footer>資料目前儲存在此瀏覽器。請定期使用「備份資料 JSON」或「匯出 Excel」。</footer>
+教育訓練成績管理系統_新版_含到職日年資.html
 
-<script>
-const STORAGE_KEY = 'studentScoreRecords_v1';
-let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-let editingId = null;
+請你到 Windows 的「下載」資料夾找到它。
 
-const $ = id => document.getElementById(id);
-function n(v){ return v === '' ? null : Number(v); }
-function calcTotal(w,p,o){
-  const arr=[w,p,o].filter(v=>v!==null && !Number.isNaN(v));
-  if(!arr.length) return null;
-  return Math.round((arr.reduce((a,b)=>a+b,0)/arr.length)*100)/100;
-}
-function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+👉 右鍵 → 重新命名
 
-function saveRecord(){
-  const name=$('name').value.trim();
-  if(!name){ alert('請先填寫姓名'); return; }
-  const written=n($('written').value), practical=n($('practical').value), oral=n($('oral').value);
-  const total=calcTotal(written,practical,oral);
-  const passingScore=Number($('passingScore').value || 60);
-  const rec={
-    id: editingId || Date.now(),
-    name, unit:$('unit').value.trim(), course:$('course').value.trim(),
-    examDate:$('examDate').value, written, practical, oral, total, passingScore,
-    result: total===null ? '未計分' : (total>=passingScore ? '及格':'未及格'),
-    note:$('note').value.trim(),
-    updatedAt:new Date().toISOString()
-  };
-  if(editingId){
-    records = records.map(r=>r.id===editingId ? rec : r);
-  }else{
-    records.unshift(rec);
-  }
-  persist(); resetForm(); renderTable();
-}
+把它改成：
 
-function resetForm(){
-  ['name','unit','course','examDate','written','practical','oral','note'].forEach(id=>$(id).value='');
-  $('passingScore').value='60'; editingId=null; $('formTitle').textContent='新增成績';
-}
+index.html
 
-function editRecord(id){
-  const r=records.find(x=>x.id===id); if(!r)return;
-  editingId=id; $('formTitle').textContent='修改成績';
-  ['name','unit','course','examDate','written','practical','oral','passingScore','note'].forEach(k=>{
-    $(k).value = r[k] ?? '';
-  });
-  window.scrollTo({top:300,behavior:'smooth'});
-}
+⚠️ 如果 Windows 跳出「已經有相同名稱的檔案」，就先把下載資料夾裡原本舊的 index.html 刪除或移到別的資料夾，再重新命名。
 
-function deleteRecord(id){
-  if(!confirm('確定要刪除這筆成績嗎？')) return;
-  records=records.filter(r=>r.id!==id); persist(); renderTable();
-}
-function esc(s){ return String(s ?? '').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
+改好之後，先不要做其他事情。
 
-function renderTable(){
-  const q=$('search').value.trim().toLowerCase();
-  const filtered=records.filter(r=>[r.name,r.unit,r.course,r.note].join(' ').toLowerCase().includes(q));
-  $('tbody').innerHTML = filtered.length ? filtered.map(r=>`
-    <tr>
-      <td><b>${esc(r.name)}</b></td><td>${esc(r.unit)}</td><td>${esc(r.course)}</td><td>${esc(r.examDate)}</td>
-      <td>${r.written ?? ''}</td><td>${r.practical ?? ''}</td><td>${r.oral ?? ''}</td>
-      <td><b>${r.total ?? ''}</b></td>
-      <td><span class="pill ${r.result==='及格'?'pass':r.result==='未及格'?'fail':''}">${esc(r.result)}</span></td>
-      <td>${esc(r.note)}</td>
-      <td><button class="mini secondary" onclick="editRecord(${r.id})">修改</button>
-          <button class="mini danger" onclick="deleteRecord(${r.id})">刪除</button></td>
-    </tr>`).join('') : '<tr><td colspan="11" style="text-align:center;color:#7b8b85;padding:28px">目前沒有資料</td></tr>';
+接著直接打開你的 GitHub 專案：
 
-  $('totalCount').textContent=records.length;
-  const graded=records.filter(r=>r.total!==null);
-  $('passCount').textContent=records.filter(r=>r.result==='及格').length;
-  $('failCount').textContent=records.filter(r=>r.result==='未及格').length;
-  $('avgScore').textContent=graded.length ? (graded.reduce((a,r)=>a+r.total,0)/graded.length).toFixed(1) : '0';
-}
+打開 student-score-system
 
-function exportExcel(){
-  if(!records.length){ alert('目前沒有資料可以匯出'); return; }
-  const rows=records.map((r,i)=>({
-    '序號':i+1,'姓名':r.name,'院所/班級':r.unit,'課程/考試名稱':r.course,'考試日期':r.examDate,
-    '筆試成績':r.written ?? '','實作成績':r.practical ?? '','口試成績':r.oral ?? '',
-    '總分':r.total ?? '','及格標準':r.passingScore,'結果':r.result,'備註':r.note
-  }));
-  const ws=XLSX.utils.json_to_sheet(rows);
-  ws['!cols']=[{wch:7},{wch:12},{wch:16},{wch:20},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:24}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'成績清單');
-  const d=new Date();
-  const stamp=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  XLSX.writeFile(wb,`學生成績_${stamp}.xlsx`,{compression:true});
-}
+進去後截圖給我，我直接告訴你下一個按哪裡。這次我們的目標很單純：用最新版 index.html 取代舊版。
 
-function exportBackup(){
-  const blob=new Blob([JSON.stringify(records,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='學生成績備份.json'; a.click(); URL.revokeObjectURL(a.href);
-}
+可不可以直接幫我取代舊版就好?
 
-function importBackup(event){
-  const file=event.target.files[0]; if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const data=JSON.parse(e.target.result);
-      if(!Array.isArray(data)) throw new Error();
-      if(confirm(`找到 ${data.length} 筆資料。要用這份備份取代目前資料嗎？`)){
-        records=data; persist(); renderTable(); alert('還原完成');
-      }
-    }catch{ alert('這個 JSON 備份檔格式不正確'); }
-    event.target.value='';
-  };
-  reader.readAsText(file);
-}
+我剛剛又直接幫你試了一次「取代 GitHub 舊版」，但 GitHub 仍然回覆 403，所以目前這個 GitHub 連線確實只能讓我讀你的檔案，不能直接寫進 main 分支。
 
-function clearAll(){
-  if(!records.length)return;
-  if(confirm('確定要清空全部成績嗎？此動作無法復原，建議先備份。')){
-    records=[]; persist(); renderTable();
-  }
-}
-renderTable();
-</script>
-</body>
-</html>
+所以答案是：我很想直接幫你按掉，但目前 GitHub 不允許我替你寫入。
+
+不過新版程式我已經全部做好了，包含你最新追加的：
+
+到職日 → 自動換算目前年資 → 顯示在清單 → 一起匯出 Excel
+
+而且我剛剛也順便修正了新版表格中「到職日／年資」顯示的部分。
+
+接下來不用再刪檔案、改 (1) 那套複雜流程了。我可以教你一個更簡單的方法：
+
+直接打開 GitHub 舊的 index.html → Ctrl+A 全選 → 貼上新版程式 → Commit changes。
+
+這樣就是直接覆蓋舊版，不用刪檔、不用重新命名、不用重新設定 Pages。
+
+你願意的話，我下一步就從你現在的畫面開始，只教你「按哪裡」，一次一個動作。
+
+OK
+
+
+好，那我們就走最簡單的覆蓋法，不刪檔、不改檔名。
+
+第一步
+
+請打開你 GitHub 裡原本的：
+
+index.html
+
+然後點右上角的 ✏️ 鉛筆 進入編輯。
+
+進去後會看到整頁程式碼。
+
+第二步
+
+在程式碼區裡按：
+
+Ctrl + A
+
+把全部舊程式選起來。
+
+接著按：
+
+Backspace / Delete
+
+把舊內容清空。
+
+第三步
+
+接著把我幫你做好的最新版程式貼進去。
+
+你可以直接打開這個最新版檔案，把裡面全部內容複製：
+
+下載最新版成績管理系統
+
+開啟後：
+
+Ctrl + A → Ctrl + C
+
+再回 GitHub 編輯畫面：
+
+Ctrl + V
+
+第四步
+
+貼完後，按右上角：
+
+Commit changes...
+
+再按一次綠色：
+
+Commit changes
+
+就完成了。
+
+GitHub Pages 會自動更新，不需要重新設定。
+
+做完後直接開你的網站：
+
+打開教育訓練成績管理系統
+
+如果還看到舊版，等約 1～2 分鐘再重新整理。
+
+教育訓練成績管理系統_新版_含到職日年資.html
+HTML
